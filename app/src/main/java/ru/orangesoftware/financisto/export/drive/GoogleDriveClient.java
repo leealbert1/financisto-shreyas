@@ -75,20 +75,23 @@ public class GoogleDriveClient {
     }
 
     private ConnectionResult connect() throws ImportExportException {
-        if (googleApiClient == null) {
-            String googleDriveAccount = MyPreferences.getGoogleDriveAccount(context);
-            if (googleDriveAccount == null) {
-                throw new ImportExportException(R.string.google_drive_account_required);
-            }
-            googleApiClient = new GoogleApiClient.Builder(context)
-                    .addApi(Drive.API)
-                    .addScope(Drive.SCOPE_FILE)
-                    .setAccountName(googleDriveAccount)
-                    //.addConnectionCallbacks(this)
-                    //.addOnConnectionFailedListener(this)
-                    .build();
-        }
-        return googleApiClient.blockingConnect(1, TimeUnit.MINUTES);
+//        if (googleApiClient == null) {
+//            String googleDriveAccount = MyPreferences.getGoogleDriveAccount(context);
+//            if (googleDriveAccount == null) {
+//                throw new ImportExportException(R.string.google_drive_account_required);
+//            }
+//            googleApiClient = new GoogleApiClient.Builder(context)
+//                    .addApi(Drive.API)
+//                    .addScope(Drive.SCOPE_FILE)
+//                    .setAccountName(googleDriveAccount)
+//                    //.addConnectionCallbacks(this)
+//                    //.addOnConnectionFailedListener(this)
+//                    .build();
+//        }
+//        return googleApiClient.blockingConnect(1, TimeUnit.MINUTES);
+
+        // todo: the older apis have been deprecated. need to migrate to google drive v3 apis. disabled until then
+        throw new ImportExportException(R.string.google_drive_disabled);
     }
 
     public void disconnect() {
@@ -101,21 +104,23 @@ public class GoogleDriveClient {
     public void doBackup(DoDriveBackup event) {
         DatabaseExport export = new DatabaseExport(context, db.db(), true);
         try {
-            String targetFolder = getDriveFolderName();
-            ConnectionResult connectionResult = connect();
-            if (connectionResult.isSuccess()) {
-                DriveFolder folder = getDriveFolder(targetFolder);
-                String fileName = export.generateFilename();
-                byte[] bytes = export.generateBackupBytes();
-                Status status = createFile(folder, fileName, bytes);
-                if (status.isSuccess()) {
-                    handleSuccess(fileName);
-                } else {
-                    handleFailure(status);
-                }
-            } else {
-                handleConnectionResult(connectionResult);
-            }
+//            String targetFolder = getDriveFolderName();
+//            ConnectionResult connectionResult = connect();
+//            if (connectionResult.isSuccess()) {
+//                DriveFolder folder = getDriveFolder(targetFolder);
+//                String fileName = export.generateFilename();
+//                byte[] bytes = export.generateBackupBytes();
+//                Status status = createFile(folder, fileName, bytes);
+//                if (status.isSuccess()) {
+//                    handleSuccess(fileName);
+//                } else {
+//                    handleFailure(status);
+//                }
+//            } else {
+//                handleConnectionResult(connectionResult);
+//            }
+            throw new ImportExportException(R.string.google_drive_disabled);
+
         } catch (Exception e) {
             handleError(e);
         }
@@ -124,26 +129,28 @@ public class GoogleDriveClient {
     @Subscribe(threadMode = ThreadMode.BACKGROUND)
     public void listFiles(DoDriveListFiles event) {
         try {
-            String targetFolder = getDriveFolderName();
-            ConnectionResult connectionResult = connect();
-            if (connectionResult.isSuccess()) {
-                DriveFolder folder = getDriveFolder(targetFolder);
-                Query query = new Query.Builder()
-                        .addFilter(Filters.and(
-                                Filters.eq(SearchableField.MIME_TYPE, Export.BACKUP_MIME_TYPE),
-                                Filters.eq(SearchableField.TRASHED, false)
-                        ))
-                        .build();
-                DriveApi.MetadataBufferResult metadataBufferResult = folder.queryChildren(googleApiClient, query).await();
-                if (metadataBufferResult.getStatus().isSuccess()) {
-                    List<DriveFileInfo> driveFiles = fetchFiles(metadataBufferResult);
-                    handleSuccess(driveFiles);
-                } else {
-                    handleFailure(metadataBufferResult.getStatus());
-                }
-            } else {
-                handleConnectionResult(connectionResult);
-            }
+//            String targetFolder = getDriveFolderName();
+//            ConnectionResult connectionResult = connect();
+//            if (connectionResult.isSuccess()) {
+//                DriveFolder folder = getDriveFolder(targetFolder);
+//                Query query = new Query.Builder()
+//                        .addFilter(Filters.and(
+//                                Filters.eq(SearchableField.MIME_TYPE, Export.BACKUP_MIME_TYPE),
+//                                Filters.eq(SearchableField.TRASHED, false)
+//                        ))
+//                        .build();
+//                DriveApi.MetadataBufferResult metadataBufferResult = folder.queryChildren(googleApiClient, query).await();
+//                if (metadataBufferResult.getStatus().isSuccess()) {
+//                    List<DriveFileInfo> driveFiles = fetchFiles(metadataBufferResult);
+//                    handleSuccess(driveFiles);
+//                } else {
+//                    handleFailure(metadataBufferResult.getStatus());
+//                }
+//            } else {
+//                handleConnectionResult(connectionResult);
+//            }
+            throw new ImportExportException(R.string.google_drive_disabled);
+
         } catch (Exception e) {
             handleError(e);
         }
@@ -152,24 +159,26 @@ public class GoogleDriveClient {
     @Subscribe(threadMode = ThreadMode.BACKGROUND)
     public void doRestore(DoDriveRestore event) {
         try {
-            ConnectionResult connectionResult = connect();
-            if (connectionResult.isSuccess()) {
-                DriveFile file = Drive.DriveApi.getFile(googleApiClient, event.selectedDriveFile.driveId);
-                DriveApi.DriveContentsResult contentsResult = file.open(googleApiClient, DriveFile.MODE_READ_ONLY, null).await();
-                if (contentsResult.getStatus().isSuccess()) {
-                    DriveContents contents = contentsResult.getDriveContents();
-                    try {
-                        DatabaseImport.createFromGoogleDriveBackup(context, db, contents).importDatabase();
-                        bus.post(new DriveRestoreSuccess());
-                    } finally {
-                        contents.discard(googleApiClient);
-                    }
-                } else {
-                    handleFailure(contentsResult.getStatus());
-                }
-            } else {
-                handleConnectionResult(connectionResult);
-            }
+//            ConnectionResult connectionResult = connect();
+//            if (connectionResult.isSuccess()) {
+//                DriveFile file = Drive.DriveApi.getFile(googleApiClient, event.selectedDriveFile.driveId);
+//                DriveApi.DriveContentsResult contentsResult = file.open(googleApiClient, DriveFile.MODE_READ_ONLY, null).await();
+//                if (contentsResult.getStatus().isSuccess()) {
+//                    DriveContents contents = contentsResult.getDriveContents();
+//                    try {
+//                        DatabaseImport.createFromGoogleDriveBackup(context, db, contents).importDatabase();
+//                        bus.post(new DriveRestoreSuccess());
+//                    } finally {
+//                        contents.discard(googleApiClient);
+//                    }
+//                } else {
+//                    handleFailure(contentsResult.getStatus());
+//                }
+//            } else {
+//                handleConnectionResult(connectionResult);
+//            }
+            throw new ImportExportException(R.string.google_drive_disabled);
+
         } catch (Exception e) {
             handleError(e);
         }
@@ -177,94 +186,102 @@ public class GoogleDriveClient {
 
     private List<DriveFileInfo> fetchFiles(DriveApi.MetadataBufferResult metadataBufferResult) {
         List<DriveFileInfo> files = new ArrayList<DriveFileInfo>();
-        MetadataBuffer metadataBuffer = metadataBufferResult.getMetadataBuffer();
-        if (metadataBuffer == null) return files;
-        try {
-            for (Metadata metadata : metadataBuffer) {
-                if (metadata == null) continue;
-                String title = metadata.getTitle();
-                if (!title.endsWith(".backup")) continue;
-                files.add(new DriveFileInfo(metadata.getDriveId(), title, metadata.getCreatedDate()));
-            }
-        } finally {
-            metadataBuffer.close();
-        }
-        Collections.sort(files);
+//        MetadataBuffer metadataBuffer = metadataBufferResult.getMetadataBuffer();
+//        if (metadataBuffer == null) return files;
+//        try {
+//            for (Metadata metadata : metadataBuffer) {
+//                if (metadata == null) continue;
+//                String title = metadata.getTitle();
+//                if (!title.endsWith(".backup")) continue;
+//                files.add(new DriveFileInfo(metadata.getDriveId(), title, metadata.getCreatedDate()));
+//            }
+//        } finally {
+//            metadataBuffer.close();
+//        }
+//        Collections.sort(files);
         return files;
     }
 
     private String getDriveFolderName() throws ImportExportException {
-        String folder = MyPreferences.getBackupFolder(context);
-        // check the backup folder registered on preferences
-        if (folder == null || folder.equals("")) {
-            throw new ImportExportException(R.string.gdocs_folder_not_configured);
-        }
-        return folder;
+//        String folder = MyPreferences.getBackupFolder(context);
+//        // check the backup folder registered on preferences
+//        if (folder == null || folder.equals("")) {
+//            throw new ImportExportException(R.string.gdocs_folder_not_configured);
+//        }
+//        return folder;
+        throw new ImportExportException(R.string.google_drive_disabled);
+
     }
 
     private DriveFolder getDriveFolder(String targetFolder) throws IOException, ImportExportException {
-        DriveFolder folder = getOrCreateDriveFolder(targetFolder);
-        if (folder == null) {
-            throw new ImportExportException(R.string.gdocs_folder_not_found);
-        }
-        return folder;
+//        DriveFolder folder = getOrCreateDriveFolder(targetFolder);
+//        if (folder == null) {
+//            throw new ImportExportException(R.string.gdocs_folder_not_found);
+//        }
+//        return folder;
+        throw new ImportExportException(R.string.google_drive_disabled);
+
     }
 
     private DriveFolder getOrCreateDriveFolder(String targetFolder) throws IOException {
-        Query query = new Query.Builder().addFilter(Filters.and(
-                Filters.eq(SearchableField.TRASHED, false),
-                Filters.eq(SearchableField.TITLE, targetFolder),
-                Filters.eq(SearchableField.MIME_TYPE, "application/vnd.google-apps.folder")
-        )).build();
-        DriveApi.MetadataBufferResult result = Drive.DriveApi.query(googleApiClient, query).await();
-        if (result.getStatus().isSuccess()) {
-            DriveId driveId = fetchDriveId(result);
-            if (driveId != null) {
-                return Drive.DriveApi.getFolder(googleApiClient, driveId);
-            }
-        }
-        return createDriveFolder(targetFolder);
+//        Query query = new Query.Builder().addFilter(Filters.and(
+//                Filters.eq(SearchableField.TRASHED, false),
+//                Filters.eq(SearchableField.TITLE, targetFolder),
+//                Filters.eq(SearchableField.MIME_TYPE, "application/vnd.google-apps.folder")
+//        )).build();
+//        DriveApi.MetadataBufferResult result = Drive.DriveApi.query(googleApiClient, query).await();
+//        if (result.getStatus().isSuccess()) {
+//            DriveId driveId = fetchDriveId(result);
+//            if (driveId != null) {
+//                return Drive.DriveApi.getFolder(googleApiClient, driveId);
+//            }
+//        }
+//        return createDriveFolder(targetFolder);
+        throw new IOException(String.valueOf(R.string.google_drive_disabled));
+
     }
 
     private DriveFolder createDriveFolder(String targetFolder) {
-        MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
-                .setTitle(targetFolder).build();
-        DriveFolder.DriveFolderResult result = Drive.DriveApi.getRootFolder(googleApiClient).createFolder(googleApiClient, changeSet).await();
-        if (result.getStatus().isSuccess()) {
-            return result.getDriveFolder();
-        } else {
+//        MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
+//                .setTitle(targetFolder).build();
+//        DriveFolder.DriveFolderResult result = Drive.DriveApi.getRootFolder(googleApiClient).createFolder(googleApiClient, changeSet).await();
+//        if (result.getStatus().isSuccess()) {
+//            return result.getDriveFolder();
+//        } else {
             return null;
-        }
+//        }
     }
 
     private DriveId fetchDriveId(DriveApi.MetadataBufferResult result) {
-        MetadataBuffer buffer = result.getMetadataBuffer();
-        try {
-            for (Metadata metadata : buffer) {
-                if (metadata == null) continue;
-                return metadata.getDriveId();
-            }
-        } finally {
-            buffer.close();
-        }
+//        MetadataBuffer buffer = result.getMetadataBuffer();
+//        try {
+//            for (Metadata metadata : buffer) {
+//                if (metadata == null) continue;
+//                return metadata.getDriveId();
+//            }
+//        } finally {
+//            buffer.close();
+//        }
         return null;
     }
 
     private Status createFile(DriveFolder folder, String fileName, byte[] bytes) throws IOException {
-        MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
-                .setTitle(fileName)
-                .setMimeType(Export.BACKUP_MIME_TYPE).build();
-        // Create a file in the root folder
-        DriveApi.DriveContentsResult contentsResult = Drive.DriveApi.newDriveContents(googleApiClient).await();
-        Status contentsResultStatus = contentsResult.getStatus();
-        if (contentsResultStatus.isSuccess()) {
-            DriveContents contents = contentsResult.getDriveContents();
-            contents.getOutputStream().write(bytes);
-            DriveFolder.DriveFileResult fileResult = folder.createFile(googleApiClient, changeSet, contents).await();
-            return fileResult.getStatus();
-        } else {
-            return contentsResultStatus;
-        }
+//        MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
+//                .setTitle(fileName)
+//                .setMimeType(Export.BACKUP_MIME_TYPE).build();
+//        // Create a file in the root folder
+//        DriveApi.DriveContentsResult contentsResult = Drive.DriveApi.newDriveContents(googleApiClient).await();
+//        Status contentsResultStatus = contentsResult.getStatus();
+//        if (contentsResultStatus.isSuccess()) {
+//            DriveContents contents = contentsResult.getDriveContents();
+//            contents.getOutputStream().write(bytes);
+//            DriveFolder.DriveFileResult fileResult = folder.createFile(googleApiClient, changeSet, contents).await();
+//            return fileResult.getStatus();
+//        } else {
+//            return contentsResultStatus;
+//        }
+        throw new IOException(String.valueOf(R.string.google_drive_disabled));
+
     }
 
     private void handleConnectionResult(ConnectionResult connectionResult) {
@@ -294,18 +311,20 @@ public class GoogleDriveClient {
 
     public void uploadFile(File file) throws ImportExportException {
         try {
-            String targetFolder = getDriveFolderName();
-            ConnectionResult connectionResult = connect();
-            if (connectionResult.isSuccess()) {
-                DriveFolder folder = getDriveFolder(targetFolder);
-                InputStream is = new FileInputStream(file);
-                try {
-                    byte[] bytes = IOUtils.toByteArray(is);
-                    createFile(folder, file.getName(), bytes);
-                } finally {
-                    IOUtil.closeInput(is);
-                }
-            }
+//            String targetFolder = getDriveFolderName();
+//            ConnectionResult connectionResult = connect();
+//            if (connectionResult.isSuccess()) {
+//                DriveFolder folder = getDriveFolder(targetFolder);
+//                InputStream is = new FileInputStream(file);
+//                try {
+//                    byte[] bytes = IOUtils.toByteArray(is);
+//                    createFile(folder, file.getName(), bytes);
+//                } finally {
+//                    IOUtil.closeInput(is);
+//                }
+//            }
+            throw new ImportExportException(R.string.google_drive_disabled);
+
         } catch (Exception e) {
             throw new ImportExportException(R.string.google_drive_connection_failed, e);
         }
