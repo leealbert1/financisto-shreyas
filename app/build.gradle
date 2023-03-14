@@ -8,15 +8,15 @@ repositories {
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 28
-    buildToolsVersion '28.0.3'
+    compileSdkVersion 32
+    buildToolsVersion '32.0.0'
 
     defaultConfig {
         applicationId "ru.orangesoftware.financisto"
         minSdkVersion 19
-        targetSdkVersion 28
+        targetSdkVersion 32
         versionCode 122
-        versionName "1.8.3"
+        versionName "sh-fork-1.8.3"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
         javaCompileOptions {
@@ -81,12 +81,12 @@ def AAVersion = '4.6.0'
 
 dependencies {
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.multidex:multidex:2.0.1'
 
-    implementation "com.google.android.gms:play-services-base:11.0.2"
-    implementation "com.google.android.gms:play-services-drive:11.0.2"
-    implementation "com.google.android.gms:play-services-plus:11.0.2"
+    implementation "com.google.android.gms:play-services-base:18.2.0"
+    implementation "com.google.android.gms:play-services-drive:17.0.0"
+    implementation "com.google.android.gms:play-services-plus:17.0.0"
 
     annotationProcessor "org.androidannotations:androidannotations:$AAVersion"
     implementation "org.androidannotations:androidannotations-api:$AAVersion"
@@ -110,6 +110,6 @@ dependencies {
     implementation fileTree(include: '**/*.jar', dir: 'libs')
 
     testImplementation 'junit:junit:4.12'
-    testImplementation 'androidx.test:core:1.2.0'
+    testImplementation 'androidx.test:core:1.5.0'
     testImplementation 'org.robolectric:robolectric:4.2.1'
 }
