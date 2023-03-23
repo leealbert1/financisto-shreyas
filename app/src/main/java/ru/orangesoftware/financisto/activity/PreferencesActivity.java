@@ -18,6 +18,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.Intent.ShortcutIconResource;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceChangeListener;
@@ -78,9 +79,9 @@ public class PreferencesActivity extends PreferenceActivity {
         });
         Preference pDatabaseBackupFolder = preferenceScreen.findPreference("database_backup_folder");
         pDatabaseBackupFolder.setOnPreferenceClickListener(arg0 -> {
-            if (isRequestingPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                return false;
-            }
+//            if (isRequestingPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+//                return false;
+//            }
             selectDatabaseBackupFolder();
             return true;
         });

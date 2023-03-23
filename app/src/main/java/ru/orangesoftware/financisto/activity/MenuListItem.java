@@ -32,6 +32,8 @@ import ru.orangesoftware.financisto.export.qif.QifImportOptions;
 import ru.orangesoftware.financisto.export.qif.QifImportTask;
 import ru.orangesoftware.financisto.utils.EntityEnum;
 import ru.orangesoftware.financisto.utils.EnumUtils;
+
+import static ru.orangesoftware.financisto.export.Export.BACKUP_MIME_TYPE;
 import static ru.orangesoftware.financisto.utils.EnumUtils.showPickOneDialog;
 import ru.orangesoftware.financisto.utils.ExecutableEntityEnum;
 import ru.orangesoftware.financisto.utils.IntegrityFix;
@@ -77,25 +79,10 @@ public enum MenuListItem implements SummaryEntityEnum {
     MENU_RESTORE(R.string.restore_database, R.string.restore_database_summary, R.drawable.actionbar_db_restore) {
         @Override
         public void call(final Activity activity) {
-            if (isRequestingPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                return;
-            }
-            final String[] backupFiles = Backup.listBackups(activity);
-            final String[] selectedBackupFile = new String[1];
-            new AlertDialog.Builder(activity)
-                    .setTitle(R.string.restore_database)
-                    .setPositiveButton(R.string.restore, (dialog, which) -> {
-                        if (selectedBackupFile[0] != null) {
-                            ProgressDialog d = ProgressDialog.show(activity, null, activity.getString(R.string.restore_database_inprogress), true);
-                            new BackupImportTask(activity, d).execute(selectedBackupFile);
-                        }
-                    })
-                    .setSingleChoiceItems(backupFiles, -1, (dialog, which) -> {
-                        if (backupFiles != null && which >= 0 && which < backupFiles.length) {
-                            selectedBackupFile[0] = backupFiles[which];
-                        }
-                    })
-                    .show();
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.setType("*/*"); // allow any file type to be selected
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            activity.startActivityForResult(intent, ACTIVITY_CHOOSE_BACKUP_FILE_FOR_RESTORE);
         }
     },
     GOOGLE_DRIVE_BACKUP(R.string.backup_database_online_google_drive, R.string.backup_database_online_google_drive_summary, R.drawable.actionbar_google_drive) {
@@ -152,7 +139,7 @@ public enum MenuListItem implements SummaryEntityEnum {
                 intent.setType("text/plain");
                 activity.startActivity(Intent.createChooser(intent, activity.getString(R.string.backup_database_to_title)));
             });
-            t.execute((String[]) null);
+            t.execute((Uri[]) null);
         }
     },
     MENU_IMPORT_EXPORT(R.string.import_export, R.string.import_export_summary, R.drawable.actionbar_export) {
@@ -245,6 +232,9 @@ public enum MenuListItem implements SummaryEntityEnum {
     public static final int ACTIVITY_CSV_IMPORT = 4;
     public static final int ACTIVITY_QIF_IMPORT = 5;
     public static final int ACTIVITY_CHANGE_PREFERENCES = 6;
+
+    public static final int ACTIVITY_CHOOSE_BACKUP_FILE_FOR_RESTORE = 7;
+    public static final int ACTIVITY_RESTORE_FROM_BACKUP = 8;
 
     public abstract void call(Activity activity);
 

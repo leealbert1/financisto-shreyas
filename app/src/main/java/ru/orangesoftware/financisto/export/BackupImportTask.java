@@ -12,6 +12,7 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.app.TabActivity;
 import android.content.Context;
+import android.net.Uri;
 import android.widget.TabHost;
 
 import ru.orangesoftware.financisto.R;
@@ -31,8 +32,8 @@ public class BackupImportTask extends ImportExportAsyncTask {
     }
 
     @Override
-    protected Object work(Context context, DatabaseAdapter db, String... params) throws Exception {
-        DatabaseImport.createFromFileBackup(context, db, params[0]).importDatabase();
+    protected Object work(Context context, DatabaseAdapter db, Uri... params) throws Exception {
+        DatabaseImport.createFromFileBackupUri(context, db, params[0]).importDatabase();
         return true;
     }
 

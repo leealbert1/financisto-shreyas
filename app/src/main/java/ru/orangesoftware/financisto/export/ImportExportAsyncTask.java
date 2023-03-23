@@ -14,6 +14,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.Toast;
@@ -27,7 +28,7 @@ import ru.orangesoftware.financisto.utils.MyPreferences;
 import static ru.orangesoftware.financisto.export.Export.uploadBackupFileToDropbox;
 import static ru.orangesoftware.financisto.export.Export.uploadBackupFileToGoogleDrive;
 
-public abstract class ImportExportAsyncTask extends AsyncTask<String, String, Object> {
+public abstract class ImportExportAsyncTask extends AsyncTask<Uri, String, Object> {
 
     protected final Activity context;
     protected final ProgressDialog dialog;
@@ -49,7 +50,7 @@ public abstract class ImportExportAsyncTask extends AsyncTask<String, String, Ob
     }
 
     @Override
-    protected Object doInBackground(String... params) {
+    protected Object doInBackground(Uri... params) {
         DatabaseAdapter db = new DatabaseAdapter(context);
         db.open();
         try {
@@ -62,7 +63,7 @@ public abstract class ImportExportAsyncTask extends AsyncTask<String, String, Ob
         }
     }
 
-    protected abstract Object work(Context context, DatabaseAdapter db, String... params) throws Exception;
+    protected abstract Object work(Context context, DatabaseAdapter db, Uri... params) throws Exception;
 
     protected abstract String getSuccessMessage(Object result);
 
