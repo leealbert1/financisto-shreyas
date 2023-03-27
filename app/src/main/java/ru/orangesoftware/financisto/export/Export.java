@@ -14,6 +14,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Environment;
+import android.util.Log;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
@@ -23,16 +24,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.zip.GZIPOutputStream;
 
-import ru.orangesoftware.financisto.R;
-import ru.orangesoftware.financisto.activity.RequestPermission;
 import ru.orangesoftware.financisto.export.drive.GoogleDriveClient;
 import ru.orangesoftware.financisto.export.drive.GoogleDriveClient_;
 import ru.orangesoftware.financisto.export.dropbox.Dropbox;
-import ru.orangesoftware.financisto.utils.MyPreferences;
 
 public abstract class Export {
 
@@ -48,9 +47,6 @@ public abstract class Export {
     }
 
     public String export() throws Exception {
-        if (!RequestPermission.checkPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-            throw new ImportExportException(R.string.request_permissions_storage_not_granted);
-        }
         File path = getBackupFolder(context);
         String fileName = generateFilename();
         File file = new File(path, fileName);
@@ -65,6 +61,8 @@ public abstract class Export {
             outputStream.flush();
             outputStream.close();
         }
+
+        Log.i("backup", "database backed up to this file: " + fileName);
         return fileName;
     }
 
@@ -102,14 +100,9 @@ public abstract class Export {
     protected abstract String getExtension();
 
     public static File getBackupFolder(Context context) {
-        String path = MyPreferences.getDatabaseBackupFolder(context);
-        File file = new File(path);
+        File file = Paths.get(context.getFilesDir().getAbsolutePath(), "backup").toFile();
         file.mkdirs();
-        if (file.isDirectory() && file.canWrite()) {
-            return file;
-        }
-        file = Export.DEFAULT_EXPORT_PATH;
-        file.mkdirs();
+
         return file;
     }
 

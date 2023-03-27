@@ -16,11 +16,9 @@ import ru.orangesoftware.financisto.BuildConfig;
 import ru.orangesoftware.financisto.R;
 import static ru.orangesoftware.financisto.activity.RequestPermission.isRequestingPermission;
 import static ru.orangesoftware.financisto.activity.RequestPermission.isRequestingPermissions;
-import ru.orangesoftware.financisto.backup.Backup;
 import ru.orangesoftware.financisto.bus.GreenRobotBus_;
 import ru.orangesoftware.financisto.db.DatabaseAdapter;
 import ru.orangesoftware.financisto.export.BackupExportTask;
-import ru.orangesoftware.financisto.export.BackupImportTask;
 import ru.orangesoftware.financisto.export.Export;
 import ru.orangesoftware.financisto.export.csv.CsvExportOptions;
 import ru.orangesoftware.financisto.export.csv.CsvExportTask;
@@ -69,9 +67,6 @@ public enum MenuListItem implements SummaryEntityEnum {
     MENU_BACKUP(R.string.backup_database, R.string.backup_database_summary, R.drawable.actionbar_db_backup) {
         @Override
         public void call(Activity activity) {
-            if (isRequestingPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                return;
-            }
             ProgressDialog d = ProgressDialog.show(activity, null, activity.getString(R.string.backup_database_inprogress), true);
             new BackupExportTask(activity, d, true).execute();
         }

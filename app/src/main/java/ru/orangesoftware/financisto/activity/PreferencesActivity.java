@@ -10,7 +10,6 @@
  ******************************************************************************/
 package ru.orangesoftware.financisto.activity;
 
-import android.Manifest;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.content.ActivityNotFoundException;
@@ -24,13 +23,13 @@ import android.preference.Preference;
 import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceScreen;
+import android.provider.DocumentsContract;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.common.AccountPicker;
 
 import ru.orangesoftware.financisto.R;
-import ru.orangesoftware.financisto.dialog.FolderBrowser;
 import ru.orangesoftware.financisto.export.Export;
 import ru.orangesoftware.financisto.export.dropbox.Dropbox;
 import ru.orangesoftware.financisto.rates.ExchangeRateProviderFactory;
@@ -38,10 +37,13 @@ import ru.orangesoftware.financisto.utils.MyPreferences;
 import ru.orangesoftware.financisto.utils.PinProtection;
 
 import static android.Manifest.permission.GET_ACCOUNTS;
-import static ru.orangesoftware.financisto.activity.RequestPermission.isRequestingPermission;
 import static ru.orangesoftware.financisto.activity.RequestPermission.isRequestingPermissions;
 import static ru.orangesoftware.financisto.utils.FingerprintUtils.fingerprintUnavailable;
 import static ru.orangesoftware.financisto.utils.FingerprintUtils.reasonWhyFingerprintUnavailable;
+
+import androidx.core.content.FileProvider;
+
+import java.io.File;
 
 public class PreferencesActivity extends PreferenceActivity {
 
@@ -79,9 +81,6 @@ public class PreferencesActivity extends PreferenceActivity {
         });
         Preference pDatabaseBackupFolder = preferenceScreen.findPreference("database_backup_folder");
         pDatabaseBackupFolder.setOnPreferenceClickListener(arg0 -> {
-//            if (isRequestingPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-//                return false;
-//            }
             selectDatabaseBackupFolder();
             return true;
         });
@@ -161,9 +160,21 @@ public class PreferencesActivity extends PreferenceActivity {
     }
 
     private void selectDatabaseBackupFolder() {
-        Intent intent = new Intent(this, FolderBrowser.class);
-        intent.putExtra(FolderBrowser.PATH, getDatabaseBackupFolder());
-        startActivityForResult(intent, SELECT_DATABASE_FOLDER);
+        // Generate the content URI using FileProvider
+        File folder = new File(getDatabaseBackupFolder());
+        Uri selectedUri = FileProvider.getUriForFile(this, getApplicationContext().getPackageName(), folder);
+
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setDataAndType(selectedUri, DocumentsContract.Document.MIME_TYPE_DIR);
+
+        // Set the flags to show the folder content in a file browser
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+
+        // Grant read permission to the receiving app
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+        // Start the activity to open the folder
+        startActivity(intent);
     }
 
     private void enableOpenExchangeApp() {
@@ -185,11 +196,6 @@ public class PreferencesActivity extends PreferenceActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) {
             switch (requestCode) {
-                case SELECT_DATABASE_FOLDER:
-                    String databaseBackupFolder = data.getStringExtra(FolderBrowser.PATH);
-                    MyPreferences.setDatabaseBackupFolder(this, databaseBackupFolder);
-                    setCurrentDatabaseBackupFolder();
-                    break;
                 case CHOOSE_ACCOUNT:
                     if (data != null) {
                         Bundle b = data.getExtras();
