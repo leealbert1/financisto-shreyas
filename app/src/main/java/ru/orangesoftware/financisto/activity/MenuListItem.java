@@ -16,6 +16,8 @@ import ru.orangesoftware.financisto.BuildConfig;
 import ru.orangesoftware.financisto.R;
 import static ru.orangesoftware.financisto.activity.RequestPermission.isRequestingPermission;
 import static ru.orangesoftware.financisto.activity.RequestPermission.isRequestingPermissions;
+
+import ru.orangesoftware.financisto.backup.DatabaseExport;
 import ru.orangesoftware.financisto.bus.GreenRobotBus_;
 import ru.orangesoftware.financisto.db.DatabaseAdapter;
 import ru.orangesoftware.financisto.export.BackupExportTask;
@@ -31,7 +33,6 @@ import ru.orangesoftware.financisto.export.qif.QifImportTask;
 import ru.orangesoftware.financisto.utils.EntityEnum;
 import ru.orangesoftware.financisto.utils.EnumUtils;
 
-import static ru.orangesoftware.financisto.export.Export.BACKUP_MIME_TYPE;
 import static ru.orangesoftware.financisto.utils.EnumUtils.showPickOneDialog;
 import ru.orangesoftware.financisto.utils.ExecutableEntityEnum;
 import ru.orangesoftware.financisto.utils.IntegrityFix;
@@ -67,8 +68,18 @@ public enum MenuListItem implements SummaryEntityEnum {
     MENU_BACKUP(R.string.backup_database, R.string.backup_database_summary, R.drawable.actionbar_db_backup) {
         @Override
         public void call(Activity activity) {
-            ProgressDialog d = ProgressDialog.show(activity, null, activity.getString(R.string.backup_database_inprogress), true);
-            new BackupExportTask(activity, d, true).execute();
+
+            Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("application/gzip");
+
+            DatabaseAdapter db = new DatabaseAdapter(activity);
+            db.open();
+            DatabaseExport export = new DatabaseExport(activity, db.db(), true);
+
+            intent.putExtra(Intent.EXTRA_TITLE, export.generateFilename());
+
+            activity.startActivityForResult(intent, ACTIVITY_CHOOSE_BACKUP_LOCATION);
         }
     },
     MENU_RESTORE(R.string.restore_database, R.string.restore_database_summary, R.drawable.actionbar_db_restore) {
@@ -230,6 +241,8 @@ public enum MenuListItem implements SummaryEntityEnum {
 
     public static final int ACTIVITY_CHOOSE_BACKUP_FILE_FOR_RESTORE = 7;
     public static final int ACTIVITY_RESTORE_FROM_BACKUP = 8;
+
+    public static final int ACTIVITY_CHOOSE_BACKUP_LOCATION = 9;
 
     public abstract void call(Activity activity);
 

@@ -5,6 +5,8 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.net.Uri;
 
+import java.io.FileOutputStream;
+
 import ru.orangesoftware.financisto.backup.DatabaseExport;
 import ru.orangesoftware.financisto.db.DatabaseAdapter;
 
@@ -21,8 +23,13 @@ public class BackupExportTask extends ImportExportAsyncTask {
 	
 	@Override
 	protected Object work(Context context, DatabaseAdapter db, Uri...params) throws Exception {
+		backupFileName = params[0].getLastPathSegment();
+
+		FileOutputStream outputStream = (FileOutputStream) context.getContentResolver().openOutputStream(params[0]);
 		DatabaseExport export = new DatabaseExport(context, db.db(), true);
-        backupFileName = export.export();
+        export.export(outputStream);
+
+		// todo: this needs to be fixed to use a Uri instead of filename
         if (uploadOnline) {
             doUploadToDropbox(context, backupFileName);
 			doUploadToGoogleDrive(context, backupFileName);

@@ -51,19 +51,24 @@ public abstract class Export {
         String fileName = generateFilename();
         File file = new File(path, fileName);
         FileOutputStream outputStream = new FileOutputStream(file);
-        try {
-            if (useGzip) {
-                export(new GZIPOutputStream(outputStream));
-            } else {
-                export(outputStream);
-            }
-        } finally {
-            outputStream.flush();
-            outputStream.close();
-        }
+
+        export(outputStream);
 
         Log.i("backup", "database backed up to this file: " + fileName);
         return fileName;
+    }
+
+    public void export(FileOutputStream fileOutputStream) throws Exception {
+        try {
+            if (useGzip) {
+                export(new GZIPOutputStream(fileOutputStream));
+            } else {
+                export(fileOutputStream);
+            }
+        } finally {
+            fileOutputStream.flush();
+            fileOutputStream.close();
+        }
     }
 
     protected void export(OutputStream outputStream) throws Exception {
