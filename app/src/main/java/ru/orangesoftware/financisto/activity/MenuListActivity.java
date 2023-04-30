@@ -11,18 +11,21 @@
  ******************************************************************************/
 package ru.orangesoftware.financisto.activity;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.net.Uri;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.Status;
+
 import java.util.List;
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Bean;
@@ -33,6 +36,8 @@ import org.greenrobot.eventbus.ThreadMode;
 import ru.orangesoftware.financisto.R;
 import ru.orangesoftware.financisto.adapter.SummaryEntityListAdapter;
 import ru.orangesoftware.financisto.bus.GreenRobotBus;
+import ru.orangesoftware.financisto.export.BackupExportTask;
+import ru.orangesoftware.financisto.export.BackupImportTask;
 import ru.orangesoftware.financisto.export.csv.CsvExportOptions;
 import ru.orangesoftware.financisto.export.csv.CsvImportOptions;
 import ru.orangesoftware.financisto.export.drive.DoDriveBackup;
@@ -55,7 +60,6 @@ import static ru.orangesoftware.financisto.service.DailyAutoBackupScheduler.sche
 import ru.orangesoftware.financisto.utils.PinProtection;
 
 import ru.orangesoftware.financisto.utils.MyPreferences;
-import ru.orangesoftware.financisto.utils.PinProtection;
 
 @EActivity(R.layout.activity_menu_list)
 public class MenuListActivity extends ListActivity {
@@ -115,6 +119,25 @@ public class MenuListActivity extends ListActivity {
     @OnActivityResult(MenuListItem.ACTIVITY_CHANGE_PREFERENCES)
     public void onChangePreferences() {
         scheduleNextAutoBackup(this);
+    }
+
+    @OnActivityResult(MenuListItem.ACTIVITY_CHOOSE_BACKUP_FILE_FOR_RESTORE)
+    public void onRestoreFromBackup(int resultCode, Intent data) {
+        if (data != null) {
+            Uri backupFileUri = data.getData();
+            ProgressDialog d = ProgressDialog.show(this, null, this.getString(R.string.restore_database_inprogress), true);
+                            new BackupImportTask(this, d).execute(backupFileUri);
+        }
+    }
+
+    @OnActivityResult(MenuListItem.ACTIVITY_CHOOSE_BACKUP_LOCATION)
+    public void onChooseBackupLocation(int resultCode, Intent data) {
+        if(resultCode == Activity.RESULT_OK && data != null) {
+            Uri backupFileUri = data.getData();
+
+            ProgressDialog d = ProgressDialog.show(this, null, getString(R.string.backup_database_inprogress), true);
+            new BackupExportTask(this, d, true).execute(backupFileUri);
+        }
     }
 
     @Override

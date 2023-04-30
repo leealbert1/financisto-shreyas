@@ -1,5 +1,6 @@
 package ru.orangesoftware.financisto.service;
 
+import android.annotation.SuppressLint;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -165,6 +166,7 @@ public class RecurrenceScheduler {
         return scheduled;
     }
 
+    @SuppressLint("ObsoleteSdkInt")
     public boolean scheduleAlarm(Context context, TransactionInfo transaction, long now) {
         if (shouldSchedule(transaction, now)) {
             Date scheduleTime = transaction.nextDateTime;
@@ -208,7 +210,8 @@ public class RecurrenceScheduler {
         Intent intent = new Intent("ru.orangesoftware.financisto.SCHEDULED_ALARM");
         intent.setClass(context, ScheduledAlarmReceiver.class);
         intent.putExtra(SCHEDULED_TRANSACTION_ID, transactionId);
-        return PendingIntent.getBroadcast(context, (int)transactionId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        return PendingIntent.getBroadcast(context, (int)transactionId, intent,
+                PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     /**

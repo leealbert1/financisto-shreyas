@@ -3,6 +3,8 @@ package ru.orangesoftware.financisto.export.csv;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.net.Uri;
+
 import ru.orangesoftware.financisto.db.DatabaseAdapter;
 import ru.orangesoftware.financisto.export.ImportExportAsyncTask;
 
@@ -16,7 +18,7 @@ public class CsvExportTask extends ImportExportAsyncTask {
 	}
 	
 	@Override
-	protected Object work(Context context, DatabaseAdapter db, String...params) throws Exception {
+	protected Object work(Context context, DatabaseAdapter db, Uri...params) throws Exception {
 		CsvExport export = new CsvExport(context, db, options);
         String backupFileName = export.export();
         if (options.uploadToDropbox) {
