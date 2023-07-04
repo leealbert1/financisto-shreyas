@@ -13,19 +13,15 @@ jobs:
     runs-on: ubuntu-latest
     container: reactnativecommunity/react-native-android
     steps:
-    - name: Print new build number
-      run: |
-        echo "Build number is $BUILD_NUMBER"
-        echo "Build number is $buildnumber" ${{ steps.buildnumber.outputs.build_number }}
-        echo  $BUILD_NUMBER
     - uses: actions/checkout@v2
     - name: Envinfo
       run: npx envinfo
-    - name: Build application
-      run: |
-        yarn install && cd android && chmod +x gradlew && ./gradlew build bundleRelease 
-        du -shc `find . -regex '.+\.\(apk\|aab\)$'`
-#      run: yarn install && cd android && chmod +x gradlew && ./gradlew assembleRelease
+      
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+    - name: Build with Gradle
+      run: ./gradlew build assembleDebug
+      
             
     #Prepare Release
       
